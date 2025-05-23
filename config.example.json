@@ -1,0 +1,7 @@
+{
+    "telegram_api_id": "YOUR_API_ID_HERE",
+    "telegram_api_hash": "YOUR_API_HASH_HERE",
+    "telegram_phone": "YOUR_PHONE_NUMBER_HERE",
+    "telegram_default_group_id": null,
+    "telegram_default_topic_id": null
+} 

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            text-align: center;
+            font-family: sans-serif;
+        }
+        .error-container {
+            max-width: 500px;
+            padding: 2rem;
+            background-color: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);
+        }
+        .error-container h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+        .error-container p {
+            margin-bottom: 1.5rem;
+            font-size: 1.1rem;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <div class="error-container">
+        <h1>Oops! Something went wrong.</h1>
+        <p>{{ error_message | safe }}</p>
+        <a href="{{ url_for('index') }}" class="btn btn-primary">Go to Homepage</a>
+    </div>
+</body>
+</html> 

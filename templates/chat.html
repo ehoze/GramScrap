@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ archive_display_name }} - Telegram Chat Archive</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #f0f2f5;
+            --text-color: #050505;
+            --message-bg: #ffffff;
+            --message-shadow: rgba(0,0,0,0.08);
+            --filter-bg: #ffffff;
+            --time-color: #65676b;
+            --link-color: #007bff;
+            --header-color: #1c1e21;
+            --border-color-light: #ced4da;
+            --button-outline-color: #007bff;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #18191a;
+            --text-color: #e4e6eb;
+            --message-bg: #242526;
+            --message-shadow: rgba(0,0,0,0.3);
+            --filter-bg: #242526;
+            --time-color: #b0b3b8;
+            --link-color: #4dabf7;
+            --header-color: #e4e6eb;
+            --border-color-light: #3e4042;
+            --button-outline-color: #4dabf7;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            transition: background-color 0.2s, color 0.2s;
+        }
+
+        .chat-container-wrapper {
+            padding-top: 20px;
+            padding-bottom: 20px;
+        }
+
+        .chat-container {
+            max-width: 800px;
+            margin: 0 auto;
+            /* Removed background-color and box-shadow to make it a structural container */
+            /* background-color: var(--filter-bg); */
+            /* box-shadow: 0 2px 10px var(--message-shadow); */
+            border-radius: 8px; /* Can keep or remove, less relevant now */
+            /* overflow: hidden; */ /* May not be needed */
+        }
+
+        .filter-container {
+            position: sticky;
+            top: 0; /* Stick to top */
+            background-color: var(--filter-bg);
+            padding: 15px 20px;
+            /* border-bottom: 1px solid var(--border-color-light); */ /* Removed border for card look */
+            z-index: 1000;
+            transition: background-color 0.2s, border-color 0.2s;
+            /* Added card-like styles */
+            border-radius: 8px; 
+            box-shadow: 0 2px 8px var(--message-shadow);
+            margin-bottom: 20px; /* Space below the filter card */
+        }
+        .filter-container h4 {
+            color: var(--header-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .messages-area {
+            padding: 20px;
+            max-height: calc(100vh - 200px); /* Adjusted for potentially taller filter + margins */
+            overflow-y: auto;
+            /* background-color: var(--message-bg); */ /* Optional: if messages area needs a distinct background */
+            /* border-radius: 8px; */ /* Optional: if messages area itself should be a card */
+        }
+
+        .message {
+            margin-bottom: 15px;
+            padding: 10px 12px;
+            border-radius: 10px; /* Increased border-radius */
+            background-color: var(--message-bg);
+            border-left: 4px solid; /* Color set by JS */
+            box-shadow: 0 1px 2px var(--message-shadow);
+            transition: background-color 0.2s, box-shadow 0.2s;
+        }
+
+        .message-header {
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            margin-right: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 500;
+            font-size: 0.9em;
+            flex-shrink: 0;
+        }
+
+        .message-sender {
+            font-weight: 600;
+            color: var(--header-color);
+        }
+        .message-sender .text-muted {
+            font-weight: 400;
+            color: var(--time-color) !important;
+        }
+
+        .message-time {
+            font-size: 0.8em;
+            color: var(--time-color);
+            margin-left: auto;
+            white-space: nowrap;
+        }
+
+        .message-content {
+            margin-top: 5px;
+            word-wrap: break-word;
+        }
+        .message-content pre {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+            white-space: pre-wrap; 
+            word-wrap: break-word;
+            font-size: 0.9em;
+            border: 1px solid var(--border-color-light);
+        }
+        .message-content code:not(pre code) {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding: 0.2em 0.4em;
+            margin: 0;
+            font-size: 85%;
+            border-radius: 3px;
+            border: 1px solid var(--border-color-light);
+        }
+
+        .media-container {
+            margin-top: 10px;
+        }
+        .media-container img, 
+        .media-container video {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+            display: block;
+            margin-top: 5px;
+            border: 1px solid var(--border-color-light);
+        }
+        .media-container audio {
+            width:100%; /* Make audio player full width */
+            border-radius: 5px;
+            border: 1px solid var(--border-color-light);
+            margin-top: 5px;
+        }
+
+        .chat-link {
+            color: var(--link-color);
+            text-decoration: none;
+            word-break: break-all;
+        }
+        .chat-link:hover {
+            text-decoration: underline;
+        }
+
+        .file-download-link {
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 12px;
+            background-color: var(--button-outline-color);
+            color: var(--message-bg);
+            border-radius: 5px;
+            text-decoration: none;
+            margin-top: 5px;
+            font-size: 0.9em;
+            border: 1px solid transparent;
+        }
+        .file-download-link .bi {
+            margin-right: 6px;
+        }
+        .file-download-link:hover {
+            opacity: 0.85;
+            color: var(--message-bg);
+        }
+        
+        .form-select {
+            background-color: var(--message-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color-light);
+        }
+        .form-select:focus {
+            border-color: var(--button-outline-color);
+            box-shadow: 0 0 0 0.2rem rgba(var(--button-outline-color), 0.25); /* Ensure this is a valid color format */
+        }
+
+        .theme-switch {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1020;
+        }
+        .btn-outline-custom {
+            color: var(--button-outline-color);
+            border-color: var(--button-outline-color);
+        }
+        .btn-outline-custom:hover {
+            color: var(--filter-bg);
+            background-color: var(--button-outline-color);
+            border-color: var(--button-outline-color);
+        }
+        .back-button {
+             margin-bottom: 1rem; /* Removed one of the duplicate definitions */
+        }
+
+    </style>
+</head>
+<body>
+    <div class="chat-container-wrapper">
+        <div class="chat-container">
+            <div class="filter-container">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="mb-1">{{ archive_display_name }}</h4>
+                        <a href="{{ url_for('index') }}" class="btn btn-sm btn-outline-custom back-button"><i class="bi bi-arrow-left"></i> Back to Archives</a>
+                    </div>
+                    <div class="ms-3">
+                        {% if topic_id %}
+                        <a href="{{ url_for('export_archive', group_id_str=group_id, topic_id_str=topic_id) }}" class="btn btn-sm btn-success">
+                            <i class="bi bi-box-arrow-down"></i> Export Topic
+                        </a>
+                        {% else %}
+                        <a href="{{ url_for('export_archive', group_id_str=group_id) }}" class="btn btn-sm btn-success">
+                            <i class="bi bi-box-arrow-down"></i> Export Group Archive
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+                <select class="form-select mt-2" id="authorFilter">
+                    <option value="">All Authors</option>
+                    {% for author in authors %}
+                    <option value="{{ author }}">{{ author }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="messages-area" id="messages">
+                {% for msg in messages %}
+                <div class="message" data-author="{{ msg.sender_first_name or '' }} {{ msg.sender_last_name or '' }} (@{{ msg.sender_username or '' }})" 
+                     style="border-left-color: {{ msg.sender_id | string | hash_color }};">
+                    <div class="message-header">
+                        <div class="user-avatar" style="background-color: {{ msg.sender_id | string | hash_color }};">
+                            {{ ( (msg.sender_first_name or msg.sender_last_name or msg.sender_username or '?')[:1] ) | upper }}
+                        </div>
+                        <div>
+                            <span class="message-sender">
+                                {{ msg.sender_first_name or '' }} {{ msg.sender_last_name or '' }}
+                                {% if msg.sender_username %}
+                                <small class="text-muted">(@{{ msg.sender_username }})</small>
+                                {% endif %}
+                            </span>
+                        </div>
+                        <span class="message-time">
+                            {{ msg.date_dt.strftime('%Y-%m-%d %H:%M:%S') if msg.date_dt else msg.date_str }}
+                        </span>
+                    </div>
+                    <div class="message-content">
+                        {{ msg.text_html | safe }}
+                    </div>
+                    {% if msg.media_filename and "skipped_large_file" not in msg.media_filename %}
+                        <div class="media-container">
+                        {% set media_path = output_dir + '/group_' + group_id + ('/topic_' + topic_id if topic_id else '/complete_archive') + '/media/' + msg.media_filename %}
+                        {% set file_ext = msg.media_filename.split('.')[-1].lower() %}
+                        
+                        {% if file_ext in ['jpg', 'jpeg', 'png', 'gif', 'webp'] %}
+                            <img src="{{ url_for('serve_media', output_dir_name=output_dir, group_id_str=group_id, topic_id_str=topic_id, filename=msg.media_filename) }}" alt="Media" class="img-fluid rounded">
+                        {% elif file_ext in ['mp4', 'webm', 'mov'] %}
+                            <video controls class="img-fluid rounded" style="max-height: 500px;">
+                                <source src="{{ url_for('serve_media', output_dir_name=output_dir, group_id_str=group_id, topic_id_str=topic_id, filename=msg.media_filename) }}" type="video/{{ file_ext }}">
+                                Your browser does not support the video tag.
+                            </video>
+                        {% elif file_ext in ['mp3', 'ogg', 'wav', 'm4a'] %}
+                            <audio controls class="w-100">
+                                <source src="{{ url_for('serve_media', output_dir_name=output_dir, group_id_str=group_id, topic_id_str=topic_id, filename=msg.media_filename) }}" type="audio/{{ file_ext }}">
+                                Your browser does not support the audio element.
+                            </audio>
+                        {% else %}
+                             <a href="{{ url_for('serve_media', output_dir_name=output_dir, group_id_str=group_id, topic_id_str=topic_id, filename=msg.media_filename) }}" class="file-download-link" download>
+                                <i class="bi bi-file-earmark-arrow-down"></i> Download File: {{ msg.media_filename }}
+                            </a>
+                        {% endif %}
+                        </div>
+                    {% elif msg.media_filename and "skipped_large_file" in msg.media_filename %}
+                        <div class="media-container">
+                            <p class="text-muted small"><em>Media file was too large and was skipped: {{ msg.media_filename | replace("skipped_large_file_(", "(") | replace(")",")") }}</em></p>
+                        </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+                {% if not messages %}
+                    <p class="text-center text-muted mt-4">No messages found in this archive.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <button class="btn btn-outline-custom theme-switch" onclick="toggleTheme()" title="Toggle theme">
+        <i class="bi bi-moon-stars-fill"></i> <span class="theme-icon-text">Dark</span>
+    </button>
+
+    <script>
+        function applyAuthorFilter() {
+            const authorFilterValue = document.getElementById('authorFilter').value;
+            const messages = document.querySelectorAll('.message');
+            
+            messages.forEach(msg => {
+                const msgAuthor = msg.dataset.author;
+                if (!authorFilterValue || msgAuthor === authorFilterValue) {
+                    msg.style.display = 'block';
+                } else {
+                    msg.style.display = 'none';
+                }
+            });
+        }
+        document.getElementById('authorFilter').addEventListener('change', applyAuthorFilter);
+
+        // Theme toggle
+        const themeToggleButton = document.querySelector('.theme-switch');
+        const themeIcon = themeToggleButton.querySelector('i');
+        const themeIconText = themeToggleButton.querySelector('.theme-icon-text');
+
+        function setTheme(theme) {
+            document.body.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+            if (theme === 'dark') {
+                themeIcon.classList.remove('bi-moon-stars-fill');
+                themeIcon.classList.add('bi-sun-fill');
+                themeIconText.textContent = "Light";
+            } else {
+                themeIcon.classList.remove('bi-sun-fill');
+                themeIcon.classList.add('bi-moon-stars-fill');
+                themeIconText.textContent = "Dark";
+            }
+        }
+
+        function toggleTheme() {
+            const currentTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            setTheme(newTheme);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const preferredTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+            setTheme(preferredTheme);
+            applyAuthorFilter(); // Apply filter on initial load if a selection exists
+        });
+    </script>
+</body>
+</html> 
