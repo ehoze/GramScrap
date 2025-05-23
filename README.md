@@ -16,7 +16,7 @@ Project to scrape messages from a specific topic or an entire group on Telegram 
 
 1.  **Clone the repository:**
     ```bash
-    git clone https://github.com/YOUR_USERNAME/REPOSITORY_NAME.git
+    git clone https://github.com/ehoze/GramScrap.git
     cd REPOSITORY_NAME
     ```
 
